@@ -1,0 +1,2 @@
+printf.c:21:6:__io_putchar	16	static
+printf.c:25:5:__io_getchar	16	static

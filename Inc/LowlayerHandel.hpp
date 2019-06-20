@@ -28,7 +28,14 @@ public:
 	S8(&htim3,GPIOB,GPIO_PIN_1,3),
 	extcan(CAN_ID_EXT,CAN_RTR_DATA)
 	{
-
+		S1.SetFrequency(50);
+		S2.SetFrequency(50);
+		S3.SetFrequency(50);
+		S4.SetFrequency(50);
+		S5.SetFrequency(50);
+		S6.SetFrequency(50);
+		S7.SetFrequency(50);
+		S8.SetFrequency(50);
 	}
 };
 //CAN_ID_EXT

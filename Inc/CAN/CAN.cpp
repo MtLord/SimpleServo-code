@@ -46,65 +46,86 @@ short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
 	Txmsg.IDE=this->IDE;
 	Txmsg.RTR=this->RTR;
 	while(Txok==false)
-	{
-		if((hcan.Instance->TSR&(0x1<<26))==1)//TME0 is Empty
-						{
-							if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX0)!=HAL_OK)
-							{
-								error_flag=true;
-								error_code=HAL_CAN_GetError(&hcan);
-								return -1;
-							}
-							Txok=true;
-							error_flag=false;
-						}
-		else if((hcan.Instance->TSR&(0x1<<27))==1)//TME1 is empty
-						{
-							if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX1)!=HAL_OK)
-							{
-								error_flag=true;
-								error_code=HAL_CAN_GetError(&hcan);
-								return -1;
-							}
-							Txok=true;
-							error_flag=false;
-						}
-		else if((hcan.Instance->TSR&(0x1<<28))==1)//TME2 is empty
-						{
-							if(	HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX2)!=HAL_OK)
-							{
-								error_flag=true;
-								error_code=HAL_CAN_GetError(&hcan);
-								return -1;
-							}
-							Txok=true;
-							error_flag=false;
-						}
+				{
+					if((hcan.Instance->TSR>>26&0x1)==1)//TME0 is Empty
+									{
+										HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX0);
+										if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX0)!=HAL_OK)
+										{
+											error_flag=true;
+											error_code=hcan.Instance->ESR>>4&0b111;
+											return -1;
+										}
+										else
+										{
+											Txok=true;
+											error_flag=false;
+										}
 
-						if(error_flag)
-						{
-							switch(error_code)
-							{
-							case 1:
-								printf("staff error");
-								break;
-							case 2:
-								printf("form error");
-								break;
-							case 3:
-								printf("ACK error");
-								break;
-							case 4:
-								printf("bit recessive error");
-								break;
-							case 5:
-								printf("bit dominant error");
-								break;
-							case 6:
-								printf("CRC error");
-								break;
-							}
-						}
-	}
+									}
+					else if((hcan.Instance->TSR>>27&0x1)==1)//TME1 is empty
+									{
+										HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX1);
+										if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX1)!=HAL_OK)
+										{
+											error_flag=true;
+											error_code=hcan.Instance->ESR>>4&0b111;
+											return -1;
+										}
+										else
+										{
+											Txok=true;
+											error_flag=false;
+										}
+
+									}
+					else if((hcan.Instance->TSR>>28&0x1)==1)//TME2 is empty
+									{
+										HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX2);
+										if(	HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX2)!=HAL_OK)
+										{
+											error_flag=true;
+											error_code=hcan.Instance->ESR>>4&0b111;
+											return -1;
+										}
+										else
+										{
+											Txok=true;
+											error_flag=false;
+										}
+
+									}
+
+									if(error_flag)
+									{
+										switch(error_code)
+										{
+										case 1:
+											printf("staff error\n\r");
+											break;
+										case 2:
+											printf("form error\n\r");
+											break;
+										case 3:
+											printf("ACK error\n\r");
+											break;
+										case 4:
+											printf("bit recessive error\n\r");
+											break;
+										case 5:
+											printf("bit dominant error\n\r");
+											break;
+										case 6:
+											printf("CRC error\n\r");
+											break;
+										}
+									}
+									else if(Txok)
+									{
+										Txok=false;
+										HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_4);
+										return 0;
+									}
+				}
 }
 

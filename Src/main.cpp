@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "printf.h"
+
 #include "LowlayerHandel.hpp"
 #include "Application/Application.hpp"
 /* USER CODE END Includes */
