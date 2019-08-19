@@ -16,8 +16,8 @@ void Servo::setDuty(float d)
 
 void Servo::Begin()
 {
-	HAL_TIM_PWM_Start(Mhandler,channel) ;       //HALの仕様
-	HAL_GPIO_WritePin(GPIOx,pin,GPIO_PIN_RESET);
+	HAL_TIM_PWM_Start(Mhandler, channel) ;       //HALの仕様
+
 }
 
 void Servo::SetFrequency(long freq)

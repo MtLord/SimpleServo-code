@@ -99,7 +99,7 @@ int main(void)
   MX_TIM3_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+/*****‰Šú‰»‡”Ô•ÏX‚·‚×‚©‚ç‚¸************/
   LowlayerHandelTypedef hlow;
   hlow.S1.SetFrequency(50);
   hlow.S2.SetFrequency(50);
@@ -150,7 +150,7 @@ int main(void)
 
 #endif
 	 // hlow.extcan.Send(0x66, 0, 0);
-	  hlow.S1.setDuty(40);
+	  hlow.S2.setDuty(40);
 	  //HAL_Delay(5);
   }
   /* USER CODE END 3 */
