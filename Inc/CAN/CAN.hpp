@@ -17,6 +17,7 @@ class CanBus
 	bool Txok=false;
 	bool error_flag=false;
 	bool txend=false;
+	int tx_led=0;
 	int error_code=0;
 	unsigned long IDE;
 	unsigned long RTR;

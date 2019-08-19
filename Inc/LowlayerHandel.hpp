@@ -28,17 +28,46 @@ public:
 	S8(&htim3,GPIOB,GPIO_PIN_1,3),
 	extcan(CAN_ID_EXT,CAN_RTR_DATA)
 	{
-		S1.SetFrequency(50);
-		S2.SetFrequency(50);
-		S3.SetFrequency(50);
-		S4.SetFrequency(50);
-		S5.SetFrequency(50);
-		S6.SetFrequency(50);
-		S7.SetFrequency(50);
-		S8.SetFrequency(50);
+
+	}
+	void LEDCheck()
+	{
+		HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_6);
+		HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
+		HAL_Delay(500);
+	}
+	void DebugServo(int num,float duty)
+	{
+		switch(num)
+		{
+		case 1:
+			S1.setDuty(duty);
+			break;
+		case 2:
+			S2.setDuty(duty);
+			break;
+		case 3:
+			S3.setDuty(duty);
+			break;
+		case 4:
+			S4.setDuty(duty);
+			break;
+		case 5:
+			S5.setDuty(duty);
+			break;
+		case 6:
+			S6.setDuty(duty);
+			break;
+		case 7:
+			S7.setDuty(duty);
+			break;
+		case 8:
+			S8.setDuty(duty);
+			break;
+		}
 	}
 };
-//CAN_ID_EXT
+
 
 
 #endif /* INC_LOWLAYERHANDEL_HPP_ */

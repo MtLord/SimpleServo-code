@@ -39,7 +39,8 @@ extern void FilterConfig();
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//#define RUN
+//#define DEBUG
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -98,9 +99,16 @@ int main(void)
   MX_TIM3_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  FilterConfig();
-  LowlayerHandelTypedef hlow;
 
+  LowlayerHandelTypedef hlow;
+  hlow.S1.SetFrequency(50);
+  hlow.S2.SetFrequency(50);
+  hlow.S3.SetFrequency(50);
+  hlow.S4.SetFrequency(50);
+  hlow.S5.SetFrequency(50);
+  hlow.S6.SetFrequency(50);
+  hlow.S7.SetFrequency(50);
+  hlow.S8.SetFrequency(50);
   hlow.S1.Begin();
   hlow.S2.Begin();
   hlow.S3.Begin();
@@ -109,7 +117,7 @@ int main(void)
   hlow.S6.Begin();
   hlow.S7.Begin();
   hlow.S8.Begin();
-
+  FilterConfig();
   App app(&hlow);
   /* USER CODE END 2 */
 
@@ -120,7 +128,30 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  app.TaskShift();
+	  //hlow.LEDCheck();
+#ifdef RUN
+	   app.TaskShift();
+#endif
+
+#ifdef DEBUG
+	   for(int i=1;i<8;i++)
+	  	  {
+	  		  for(int j=0;j>100;j+=50)
+	  		  {
+	  			  hlow.DebugServo(i,j);
+	  			  HAL_Delay(400);
+	  		  }
+	  		for(int j=100;j<0;j-=50)
+	  		{
+	  			 hlow.DebugServo(i,j);
+	  			   HAL_Delay(400);
+	  		}
+	  	  }
+
+#endif
+	 // hlow.extcan.Send(0x66, 0, 0);
+	  hlow.S1.setDuty(40);
+	  //HAL_Delay(5);
   }
   /* USER CODE END 3 */
 }
@@ -138,7 +169,7 @@ void SystemClock_Config(void)
   /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -181,7 +212,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	 HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_SET);
   /* USER CODE END Error_Handler_Debug */
 }
 

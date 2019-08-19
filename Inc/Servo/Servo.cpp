@@ -48,6 +48,6 @@ void Servo::SetFrequency(long freq)
 				}
 
 				}
-		Mhandler->Init.Prescaler=(unsigned short)Prescaler-1;
-		Mhandler->Init.Period=(unsigned short)counterperiod;
+		Mhandler->Instance->PSC=(unsigned short)Prescaler-1;
+		Mhandler->Instance->ARR=(unsigned short)counterperiod;
 }

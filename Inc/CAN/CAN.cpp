@@ -10,14 +10,23 @@
 unsigned char RxFIFO_Data[6];
 CAN_RxHeaderTypeDef RXmsg;
 
+int rx_led=0;
+#define MASKID_L 0x1<<13|0x00
+#define FILTERID_L 0x1<<13|0x1<<2 //stdidと命令IDの上位ビットでマスクをかける
+
+#define TOGGLE_TX_LED HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_6);
+#define TOGGLE_RX_LED  HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
+#define SET_ERROR_LED HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_SET);
+#define RESET_ERRORLED HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);
+
 bool CanRxFlag=false;
 void FilterConfig()
 {
 	CAN_FilterTypeDef  sFilterConfig;
 	sFilterConfig.FilterIdHigh=0x0000;
-	sFilterConfig.FilterIdLow=0x0004;
+	sFilterConfig.FilterIdLow=FILTERID_L;
 	sFilterConfig.FilterMaskIdHigh=0x0000;
-	sFilterConfig.FilterMaskIdLow=0x0004;//extdidのデータフレームだけ受信
+	sFilterConfig.FilterMaskIdLow=MASKID_L;//stdidのデータフレームだけ受信
 	sFilterConfig.FilterFIFOAssignment=CAN_FILTER_FIFO0;//受信フィルタをFIFO0に設定
 	sFilterConfig.FilterBank=0; //フィルタバンク番号を設 0-13
 	sFilterConfig.FilterScale=CAN_FILTERSCALE_32BIT; //フィルタスケールExtIdまで
@@ -37,6 +46,16 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
  {
 	   HAL_CAN_GetRxMessage(hcan,CAN_RX_FIFO0,&RXmsg,RxFIFO_Data);
 	   CanRxFlag=true;
+	   if(rx_led>5)
+	   {
+		   TOGGLE_RX_LED;
+		   rx_led=0;
+	   }
+	   else{
+		   rx_led++;
+	   }
+
+
  }
 
 short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
@@ -49,7 +68,7 @@ short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
 				{
 					if((hcan.Instance->TSR>>26&0x1)==1)//TME0 is Empty
 									{
-										HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX0);
+
 										if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX0)!=HAL_OK)
 										{
 											error_flag=true;
@@ -65,7 +84,7 @@ short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
 									}
 					else if((hcan.Instance->TSR>>27&0x1)==1)//TME1 is empty
 									{
-										HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX1);
+
 										if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX1)!=HAL_OK)
 										{
 											error_flag=true;
@@ -81,7 +100,7 @@ short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
 									}
 					else if((hcan.Instance->TSR>>28&0x1)==1)//TME2 is empty
 									{
-										HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX2);
+
 										if(	HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX2)!=HAL_OK)
 										{
 											error_flag=true;
@@ -119,13 +138,22 @@ short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
 											printf("CRC error\n\r");
 											break;
 										}
+										Txok=true;
 									}
 									else if(Txok)
 									{
-										Txok=false;
-										HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_4);
+										if(tx_led>5)
+										{
+											TOGGLE_TX_LED;
+											tx_led=0;
+										}
+										else
+										{
+											tx_led++;
+										}
 										return 0;
 									}
 				}
+	Txok=false;
 }
 
