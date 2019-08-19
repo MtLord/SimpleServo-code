@@ -39,7 +39,7 @@ extern void FilterConfig();
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//#define RUN
+#define RUN
 //#define DEBUG
 /* USER CODE END PD */
 
@@ -150,7 +150,7 @@ int main(void)
 
 #endif
 	 // hlow.extcan.Send(0x66, 0, 0);
-	  hlow.S2.setDuty(40);
+	  //hlow.S8.setDuty(40);
 	  //HAL_Delay(5);
   }
   /* USER CODE END 3 */
