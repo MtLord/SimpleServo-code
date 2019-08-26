@@ -35,6 +35,8 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 extern void FilterConfig();
+extern unsigned char RxFIFO_Data[4];
+extern CAN_RxHeaderTypeDef RXmsg;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -101,14 +103,14 @@ int main(void)
   /* USER CODE BEGIN 2 */
 /*****èâä˙âªèáî‘ïœçXÇ∑Ç◊Ç©ÇÁÇ∏************/
   LowlayerHandelTypedef hlow;
-  hlow.S1.SetFrequency(50);
-  hlow.S2.SetFrequency(50);
-  hlow.S3.SetFrequency(50);
-  hlow.S4.SetFrequency(50);
-  hlow.S5.SetFrequency(50);
-  hlow.S6.SetFrequency(50);
-  hlow.S7.SetFrequency(50);
-  hlow.S8.SetFrequency(50);
+//  hlow.S1.SetFrequency(50);
+//  hlow.S2.SetFrequency(50);
+//  hlow.S3.SetFrequency(50);
+//  hlow.S4.SetFrequency(50);
+//  hlow.S5.SetFrequency(50);
+//  hlow.S6.SetFrequency(50);
+//  hlow.S7.SetFrequency(50);
+//  hlow.S8.SetFrequency(50);
   hlow.S1.Begin();
   hlow.S2.Begin();
   hlow.S3.Begin();
@@ -134,24 +136,20 @@ int main(void)
 #endif
 
 #ifdef DEBUG
-	   for(int i=1;i<8;i++)
-	  	  {
-	  		  for(int j=0;j>100;j+=50)
-	  		  {
-	  			  hlow.DebugServo(i,j);
-	  			  HAL_Delay(400);
-	  		  }
-	  		for(int j=100;j<0;j-=50)
-	  		{
-	  			 hlow.DebugServo(i,j);
-	  			   HAL_Delay(400);
-	  		}
-	  	  }
+//	   for(int i=1;i<8;i++)
+//	  	 {
+
+		   hlow.DebugServo(1,3);
+		   HAL_Delay(500);
+		   hlow.DebugServo(1,5);
+		   HAL_Delay(500);
+		   hlow.DebugServo(1,9);
+		   HAL_Delay(500);
+//	  	 }
 
 #endif
-	 // hlow.extcan.Send(0x66, 0, 0);
-	  //hlow.S8.setDuty(40);
-	  //HAL_Delay(5);
+//printf("Get data from ID:%x\n",RXmsg.StdId);
+//printf("%x %x %x %x\n\r",RxFIFO_Data[0],RxFIFO_Data[1],RxFIFO_Data[2],RxFIFO_Data[0]);
   }
   /* USER CODE END 3 */
 }

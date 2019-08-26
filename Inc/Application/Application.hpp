@@ -13,9 +13,10 @@ class App
 	LowlayerHandelTypedef *plow;
 	void SetDuty(float duty);
 
-	float RestoreData(int until);
+	float RestoreData();
 	//long  RestoreData(int until);
 	unsigned short node_id=0;
+	float temp_data=0;
 public:
 	App(LowlayerHandelTypedef *_plow):plow(_plow)
 	{

@@ -7,18 +7,21 @@
 
 #include "Application.hpp"
 #include "DefineOrder.h"
-extern unsigned char RxFIFO_Data[6];
+extern unsigned char RxFIFO_Data[4];
 extern CAN_RxHeaderTypeDef RXmsg;
 extern bool CanRxFlag;
 
-#define ORDER_BIT_Pos 4U
+#define ORDER_BIT_Pos 6U
 
-float App::RestoreData(int until)
+float App::RestoreData()
 {
-	float temp_data=0;
-	for(int i=0;i<until-1;i++){
-		((unsigned char*)&temp_data)[i]=RxFIFO_Data[i];
-	}
+
+
+		((unsigned char*)&temp_data)[0]=RxFIFO_Data[0];
+		((unsigned char*)&temp_data)[1]=RxFIFO_Data[1];
+		((unsigned char*)&temp_data)[2]=RxFIFO_Data[2];
+		((unsigned char*)&temp_data)[3]=RxFIFO_Data[3];
+
 	return temp_data;
 }
 
@@ -58,10 +61,10 @@ void App::TaskShift()
 {
 	if(CanRxFlag)
 	{
-		if(RXmsg.StdId>>ORDER_BIT_Pos==SET_DUTY)//命令IDがSET_DUTYに一致したら
+		if((RXmsg.ExtId)>>ORDER_BIT_Pos==SET_DUTY)//命令IDがSET_DUTYに一致したら
 		{
-			this->node_id=RXmsg.StdId&0xF;//ノードIDを代入
-			SetDuty(RestoreData(4));//4バイトに分けていたデータを復元してデューティとしてセット
+			this->node_id=RXmsg.ExtId&0xF;//ノードIDを代入
+			SetDuty(RestoreData());//4バイトに分けていたデータを復元してデューティとしてセット
 		}
 		CanRxFlag=false;
 	}

@@ -10,7 +10,7 @@
 void Servo::setDuty(float d)
 {
 
-			__HAL_TIM_SetCompare(Mhandler,channel,map(d,0,100,0,Mhandler->Instance->ARR));//CRRにデューティを入れる
+			__HAL_TIM_SetCompare(Mhandler,channel,map(d,0,100,0,399));//CRRにデューティを入れる
 
 }
 

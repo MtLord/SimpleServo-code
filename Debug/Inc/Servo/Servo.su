@@ -1,3 +1,4 @@
-Servo.cpp:10:6:void Servo::setDuty(float)	0	static
-Servo.cpp:17:6:void Servo::Begin()	0	static
-Servo.cpp:23:6:void Servo::SetFrequency(long int)	24	static
+Servo.hpp:20:7:long int Servo::map(float, long int, long int, long int, long int)	32	static
+Servo.cpp:10:6:void Servo::setDuty(float)	32	static
+Servo.cpp:17:6:void Servo::Begin()	16	static
+Servo.cpp:23:6:void Servo::SetFrequency(long int)	32	static

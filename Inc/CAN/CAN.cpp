@@ -7,12 +7,12 @@
 #include "CAN.hpp"
 #include "LowlayerHandel.hpp"
 #include "can.h"
-unsigned char RxFIFO_Data[6];
+unsigned char RxFIFO_Data[4]={0,};
 CAN_RxHeaderTypeDef RXmsg;
 
 int rx_led=0;
-#define MASKID_L 0x1<<13|0x00
-#define FILTERID_L 0x1<<13|0x1<<2 //stdidと命令IDの上位ビットでマスクをかける
+#define MASKID_L 0x40<<9|0x01<<2
+#define FILTERID_L 0x40<<9|0x1<<2 //stdidと命令IDの上位ビットでマスクをかける
 
 #define TOGGLE_TX_LED HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_6);
 #define TOGGLE_RX_LED  HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_7);
@@ -46,114 +46,80 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
  {
 	   HAL_CAN_GetRxMessage(hcan,CAN_RX_FIFO0,&RXmsg,RxFIFO_Data);
 	   CanRxFlag=true;
-	   if(rx_led>5)
-	   {
+
 		   TOGGLE_RX_LED;
-		   rx_led=0;
-	   }
-	   else{
-		   rx_led++;
-	   }
+
+
 
 
  }
-
+void CanBus::SetError()
+{
+	error_code=(hcan.Instance->ESR>>4)&0b111;
+}
 short CanBus::Send(unsigned long ID,unsigned char DLC,unsigned char *data)
 {
-	Txmsg.DLC=DLC;
-	Txmsg.ExtId=ID;
-	Txmsg.IDE=this->IDE;
-	Txmsg.RTR=this->RTR;
-	while(Txok==false)
-				{
-					if((hcan.Instance->TSR>>26&0x1)==1)//TME0 is Empty
-									{
+	uint32_t mailbox_num;
+			 HAL_CAN_StateTypeDef state = hcan.State;
+			 uint32_t TSR = hcan.Instance->TSR;
+			 if ((state == HAL_CAN_STATE_READY) ||(state == HAL_CAN_STATE_LISTENING))
+			   {
+				  if (((TSR & CAN_TSR_TME0) != 0U) || ((TSR & CAN_TSR_TME1) != 0U) ||((TSR & CAN_TSR_TME2) != 0U))//どれかのメールボックスが空いていたら
+				  {
+					  mailbox_num = (TSR & CAN_TSR_CODE) >> CAN_TSR_CODE_Pos; //空きメールボックス番号を取得
+					  if (mailbox_num > 2)
+					  {
+					         /* Update error code */
+					         hcan.ErrorCode |= HAL_CAN_ERROR_INTERNAL;
+					         error_flag=true;
+					         this->SetError();
+					         return -1;
+					   }
 
-										if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX0)!=HAL_OK)
-										{
-											error_flag=true;
-											error_code=hcan.Instance->ESR>>4&0b111;
-											return -1;
-										}
-										else
-										{
-											Txok=true;
-											error_flag=false;
-										}
+					  if(this->IDE==CAN_ID_STD)
+					  {
+						  	  hcan.Instance->sTxMailBox[mailbox_num].TIR=ID<<21|this->RTR;
+					  }
+					  else//ext id
+					  {
+						  hcan.Instance->sTxMailBox[mailbox_num].TIR=ID<<3U|IDE|RTR;
+					  }
+					  hcan.Instance->sTxMailBox[mailbox_num].TDTR = DLC;
+					  hcan.Instance->sTxMailBox[mailbox_num].TDHR=(uint32_t)data[7]<<24|(uint32_t)data[6]<<16|(uint32_t)data[5]<<8|(uint32_t)data[4];//メールボックス上位レジスタにセット
+					  hcan.Instance->sTxMailBox[mailbox_num].TDLR=(uint32_t)data[3]<<24|(uint32_t)data[2]<<16|(uint32_t)data[1]<<8|(uint32_t)data[0];
+					  hcan.Instance->sTxMailBox[mailbox_num].TIR|=1;//送信ビットセット
+					  return 0;
+					  Txok=true;
+					  error_flag=false;
+				  }
+				  else
+				  {
+					  hcan.ErrorCode |= HAL_CAN_ERROR_PARAM;
+					  error_flag=true;
+					  this->SetError();
+					  return -1;
+				  }
 
-									}
-					else if((hcan.Instance->TSR>>27&0x1)==1)//TME1 is empty
-									{
-
-										if(HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX1)!=HAL_OK)
-										{
-											error_flag=true;
-											error_code=hcan.Instance->ESR>>4&0b111;
-											return -1;
-										}
-										else
-										{
-											Txok=true;
-											error_flag=false;
-										}
-
-									}
-					else if((hcan.Instance->TSR>>28&0x1)==1)//TME2 is empty
-									{
-
-										if(	HAL_CAN_AddTxMessage(&hcan,&Txmsg,data,(uint32_t*)CAN_TX_MAILBOX2)!=HAL_OK)
-										{
-											error_flag=true;
-											error_code=hcan.Instance->ESR>>4&0b111;
-											return -1;
-										}
-										else
-										{
-											Txok=true;
-											error_flag=false;
-										}
-
-									}
-
-									if(error_flag)
-									{
-										switch(error_code)
-										{
-										case 1:
-											printf("staff error\n\r");
-											break;
-										case 2:
-											printf("form error\n\r");
-											break;
-										case 3:
-											printf("ACK error\n\r");
-											break;
-										case 4:
-											printf("bit recessive error\n\r");
-											break;
-										case 5:
-											printf("bit dominant error\n\r");
-											break;
-										case 6:
-											printf("CRC error\n\r");
-											break;
-										}
-										Txok=true;
-									}
-									else if(Txok)
-									{
-										if(tx_led>5)
-										{
-											TOGGLE_TX_LED;
-											tx_led=0;
-										}
-										else
-										{
-											tx_led++;
-										}
-										return 0;
-									}
-				}
-	Txok=false;
+			   }
+			 else
+			 {
+				 hcan.ErrorCode |= HAL_CAN_ERROR_NOT_INITIALIZED;
+				 error_flag=true;
+				 this->SetError();
+				    return -1;
+			 }
+			  if(Txok)
+			  {
+			 	if(tx_led>5)
+			 	{
+			 		TOGGLE_TX_LED;
+			 		tx_led=0;
+			 	}
+			 	else
+			 	{
+			 		tx_led++;
+			 	}
+			  }
+		Txok=false;
 }
 
