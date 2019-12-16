@@ -11,7 +11,7 @@ extern unsigned char RxFIFO_Data[4];
 extern CAN_RxHeaderTypeDef RXmsg;
 extern bool CanRxFlag;
 
-#define ORDER_BIT_Pos 6U
+#define ORDER_BIT_Pos 8U
 
 float App::RestoreData()
 {
